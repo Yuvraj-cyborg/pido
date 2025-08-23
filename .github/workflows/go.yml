@@ -1,0 +1,62 @@
+name: Build and Release pido
+
+on:
+  push:
+    branches: [ "main" ]
+    # Do not run on tags, because the release job will handle that
+    tags-ignore: [ 'v*' ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Run linter
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.58.1
+
+      - name: Build
+        run: go build -v ./...
+
+      - name: Test
+        run: go test -v ./...
+
+  release:
+    name: Create Release
+    # This job only runs when a new tag is pushed in the format v*.*.*
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build # Ensures the build and test job passes before releasing
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to create a release and upload assets
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetches all history for git tags
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v5
+        with:
+          # The version of goreleaser to use
+          version: latest
+          # The arguments to pass to goreleaser
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
