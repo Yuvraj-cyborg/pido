@@ -24,7 +24,6 @@ func CompressText(path string, opts types.CompressionOptions) (int64, int64, err
 	}
 	origSize := info.Size()
 
-	// Building .gz output
 	baseOut := buildOutputPath(path, opts.OutDir)
 	outPath := baseOut + ".gz"
 

@@ -35,7 +35,7 @@ func CompressImage(path string, opts types.CompressionOptions) (int64, int64, er
 	}
 
 	// For PNG, we downscale to approximate "quality" intent.
-	// And for JPEG, we rely primarily on quality re-encode (we can also downscale if you want).
+	// And for JPEG, we rely primarily on quality re-encode (can also downscale).
 	if strings.EqualFold(format, "png") && opts.Quality < 100 {
 		scale := float64(opts.Quality) / 100.0
 		if scale < 0.1 {
